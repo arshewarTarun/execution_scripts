@@ -76,6 +76,7 @@ done
 # ── validation ─────────────────────────────────────────────────────────────────
 require_cmd curl
 require_cmd jq
+require_cmd python3
 
 [[ -z "${DATABRICKS_HOST:-}" ]]  && die "DATABRICKS_HOST is not set."
 [[ -z "${DATABRICKS_TOKEN:-}" ]] && die "DATABRICKS_TOKEN is not set."
