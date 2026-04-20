@@ -131,17 +131,19 @@ CMD=(
 [[ -n "$PY_FILES" ]]     && CMD+=(--py-files "$PY_FILES")
 [[ -n "$ARCHIVES" ]]     && CMD+=(--archives "$ARCHIVES")
 
+# ── collect all Spark/job properties into one --properties flag ────────────────
+ALL_PROPS=()
 if [[ -n "$EXECUTOR_MEMORY" || -n "$NUM_EXECUTORS" ]]; then
-  SPARK_PROPS=""
-  [[ -n "$EXECUTOR_MEMORY" ]] && SPARK_PROPS+="spark:spark.executor.memory=${EXECUTOR_MEMORY},"
-  [[ -n "$NUM_EXECUTORS" ]]   && SPARK_PROPS+="spark:spark.executor.instances=${NUM_EXECUTORS},"
-  SPARK_PROPS="${SPARK_PROPS%,}"
-  CMD+=(--properties "$SPARK_PROPS")
+  [[ -n "$EXECUTOR_MEMORY" ]] && ALL_PROPS+=("spark:spark.executor.memory=${EXECUTOR_MEMORY}")
+  [[ -n "$NUM_EXECUTORS" ]]   && ALL_PROPS+=("spark:spark.executor.instances=${NUM_EXECUTORS}")
 fi
-
 for prop in "${PROPERTIES[@]+"${PROPERTIES[@]}"}"; do
-  CMD+=(--properties "$prop")
+  ALL_PROPS+=("$prop")
 done
+if [[ ${#ALL_PROPS[@]} -gt 0 ]]; then
+  PROPS_STR=$(IFS=,; echo "${ALL_PROPS[*]}")
+  CMD+=(--properties "$PROPS_STR")
+fi
 
 if [[ ${#LABELS[@]} -gt 0 ]]; then
   LABEL_STR=$(IFS=,; echo "${LABELS[*]}")

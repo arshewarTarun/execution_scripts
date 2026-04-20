@@ -43,6 +43,8 @@ die() { echo "ERROR: $*" >&2; exit 1; }
 
 require_cmd() { command -v "$1" >/dev/null 2>&1 || die "'$1' is required but not installed."; }
 
+urlencode() { python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$1"; }
+
 api_call() {
   local method="$1" path="$2" data="${3:-}"
   local url="${DATABRICKS_HOST%/}/api/2.1${path}"
@@ -83,7 +85,7 @@ require_cmd jq
 # ── resolve job name → job ID ──────────────────────────────────────────────────
 if [[ -n "$JOB_NAME" ]]; then
   echo "Looking up job ID for name: '${JOB_NAME}' …"
-  JOBS_JSON=$(api_call GET "/jobs/list?name=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$JOB_NAME")")
+  JOBS_JSON=$(api_call GET "/jobs/list?name=$(urlencode "$JOB_NAME")")
   JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].job_id // empty')
   [[ -z "$JOB_ID" ]] && die "No job found with name '${JOB_NAME}'."
   echo "Resolved job ID: ${JOB_ID}"
